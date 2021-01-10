@@ -4,7 +4,7 @@
 local list_key = "list:" .. redis.call("INCR", "list:id")
 
 -- store list reference:
-local score = redis.call("ZCOUNT", "lists", "-inf", "+inf")
+local score = redis.call("ZREVRANGEBYSCORE", "lists", "+inf", "-inf", "LIMIT", 0, 1)
 score = score + 1
 redis.call("ZADD", "lists", score, list_key)
 

@@ -1,6 +1,8 @@
 -- ! move_list_item.lua
 local item = KEYS[1]
-local reference_score = -1
+
+-- no reference, append to top
+local reference_score = 0
 
 -- infer list
 local d1 = string.find(item, ":")
@@ -15,6 +17,9 @@ if #KEYS > 1 then
     local score = redis.call("ZSCORE", list, reference)
     if score then
         reference_score = score
+    else
+        -- reference gone, append to bottom
+        reference_score = redis.call("ZREVRANGEBYSCORE", list, "+inf", "-inf", "LIMIT", 0, 1)
     end
 end
 
@@ -24,7 +29,7 @@ redis.call("ZADD", list, item_score, item)
 
 -- recalc scores
 local items = redis.call("ZRANGEBYSCORE", list, item_score, "+inf")
-local score = reference_score + 1
+local score = reference_score + 0.9
 for _, key in ipairs(items) do
     redis.call("ZADD", list, score, key)
     score = score + 1
